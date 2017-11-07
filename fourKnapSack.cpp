@@ -1,5 +1,6 @@
 //4 mochilas en 4 hilos
-//la matriz M es un vector de vector monada, esto fuerza la evaluacion perezosa y ahorra memoria
+//la matriz matrizMejoresValores es un vector de vector, que no reserva memoria hasta que la necesita, 
+//es decir, evaluacion perezosa y ahorra memoria
 //al lanzar 4 mochilas en paralelo se consume mas RAM pero esperamos minimizarlo con la pereza
 //al usar bucle para recoger las 4 lanzadas en paralelo hacemos una especie de wait
 #include <vector>
