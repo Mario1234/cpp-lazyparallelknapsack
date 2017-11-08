@@ -1,12 +1,19 @@
 //4 mochilas en 4 hilos
-//la matriz matrizMejoresValores es un vector de vector, que no reserva memoria hasta que la necesita, 
-//es decir, evaluacion perezosa y ahorra memoria
+//la matriz M es un vector de vector monada, esto fuerza la evaluacion perezosa y ahorra memoria
 //al lanzar 4 mochilas en paralelo se consume mas RAM pero esperamos minimizarlo con la pereza
 //al usar bucle para recoger las 4 lanzadas en paralelo hacemos una especie de wait
 #include <vector>
 #include <chrono>
 #include <iostream> //cout
 #include <future> //async
+
+bool todasTerminadas(const std::vector<bool> & b_tareas){
+    bool b_accum = true;
+    for(auto b_tarea : b_tareas) {
+        b_accum &= b_tarea;
+    }
+    return b_accum;
+}
 
 int mochila(const std::vector<int> & pesos, const std::vector<int> & valores, const int capacidad) {
     const int numeroElementos = pesos.size();
@@ -93,17 +100,33 @@ void cuatroMochilas(void){
 
     auto t_empieza = std::chrono::steady_clock::now();
 
+    //lanza los 4 hilos
     tareas.push_back(
                      std::async(
+                            std::launch::async,
                             [pesos1,valores1,capacidad1](){
                                 return mochila(pesos1,valores1,capacidad1);
                             }
                           )
                     );
-    tareas.push_back( std::async([pesos2,valores2,capacidad2](){return mochila(pesos2,valores2,capacidad2);}) );
-    tareas.push_back( std::async([pesos3,valores3,capacidad3](){return mochila(pesos3,valores3,capacidad3);}) );
-    tareas.push_back( std::async([pesos4,valores4,capacidad4](){return mochila(pesos4,valores4,capacidad4);}) );
+    tareas.push_back( std::async(std::launch::async,
+                                 [pesos2,valores2,capacidad2](){return mochila(pesos2,valores2,capacidad2);}) );
+    tareas.push_back( std::async(std::launch::async,
+                                 [pesos3,valores3,capacidad3](){return mochila(pesos3,valores3,capacidad3);}) );
+    tareas.push_back( std::async(std::launch::async,
+                                 [pesos4,valores4,capacidad4](){return mochila(pesos4,valores4,capacidad4);}) );
 
+    //espera a que terminen los 4 hilos
+    std::vector<bool>b_tareas(4,false);
+    int i=0;
+    while(!todasTerminadas(b_tareas)) {
+        if(tareas[i].wait_for(std::chrono::seconds(0))==std::future_status::ready){
+            b_tareas[i]=true;
+        }
+        i++;
+        if(i==4)i=0;
+    }
+    //recoge las soluciones de los 4 hilos
     for(auto &tarea : tareas) {
         resulMin = std::min(resulMin,tarea.get());
     }
@@ -117,4 +140,3 @@ void cuatroMochilas(void){
 int main(int argc,char** argv){
    cuatroMochilas();
 }
-
