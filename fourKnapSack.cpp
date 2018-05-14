@@ -1,5 +1,6 @@
 //4 mochilas en 4 hilos
-//la matriz M es un vector de vector monada, esto fuerza la evaluacion perezosa y ahorra memoria
+//la matriz matrizMejoresValores es un vector de vector de enteros, esto evita el desbordamiento en la pila que dan 
+//las llamadas recursivas en la implementacion tradicional de la mochila
 //al lanzar 4 mochilas en paralelo se consume mas RAM pero esperamos minimizarlo con la pereza
 //al usar bucle para recoger las 4 lanzadas en paralelo hacemos una especie de wait
 #include <vector>
@@ -15,6 +16,7 @@ bool todasTerminadas(const std::vector<bool> & b_tareas){
     return b_accum;
 }
 
+//solucion no recursiva de la mochila con memoria dinamica para evitar stackoverflow
 int mochila(const std::vector<int> & pesos, const std::vector<int> & valores, const int capacidad) {
     const int numeroElementos = pesos.size();
     int sinElementos[capacidad];
@@ -22,7 +24,7 @@ int mochila(const std::vector<int> & pesos, const std::vector<int> & valores, co
     std::vector<int> vi_sinElementos(sinElementos, sinElementos + sizeof(sinElementos) / sizeof(int) );
     std::vector<std::vector<int>> matrizMejoresValores(1,vi_sinElementos);
     for(int indiceElemento = 1;indiceElemento<numeroElementos;indiceElemento++){
-        std::vector<int> fila(1,0);
+        std::vector<int> fila(1,0);//crea tantas filas(vacias) como elementos hay para elegir
         for(int capacidadActual = 1;capacidadActual<capacidad;capacidadActual++){
             int valor = 0;
             int pesoElemento = pesos[indiceElemento];
@@ -40,7 +42,8 @@ int mochila(const std::vector<int> & pesos, const std::vector<int> & valores, co
                     valor = matrizMejoresValores[indiceElemento-1][capacidadActual];
                 }
             }
-            fila.push_back(valor);
+            fila.push_back(valor);//apila el mejor valor de la mochila para la iteracion x,y donde 
+            //x es el indiceElemento e y es la capacidadActual
         }
         matrizMejoresValores.push_back(fila);
     }
@@ -50,11 +53,14 @@ int mochila(const std::vector<int> & pesos, const std::vector<int> & valores, co
     if(static_cast<int>(matrizMejoresValores.size())>i && i>=0){
         if(static_cast<int>(matrizMejoresValores[i].size())>j && j>=0){
            temp  = matrizMejoresValores[i][j];
+            //la ultima posicion de la matriz guarda el mejor valor para 
+            //todos los elementos para la capacidad de la mochila
         }
     }
     return temp;
 }
 
+//ejecucion de una mochila
 void unaMochila(void){
     int a_valores1[] = {0,9,13,153,50,15,68,27,39,23,52,11,32,24,48,73,42,43,22,7,18,4,30};
     int a_pesos1[] = {0,150,35,200,160,60,45,60,40,30,10,70,30,15,10,40,70,75,80,20,12,50,10};
@@ -70,6 +76,7 @@ void unaMochila(void){
     std::cout << v << std::endl;
 }
 
+//ejecucion de 4 mochilas en paralelo
 void cuatroMochilas(void){
     int resulMin = 2222;//por poner un numero
 
